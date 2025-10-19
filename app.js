@@ -1,35 +1,28 @@
-// JS file for villages and cities data
+//JS file for only cities
 function getWeather() {
     const city = document.getElementById('city').value.trim();
     const apiKey = 'a57d65a2330043e0f5d89702e806da8b';
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}`;
+
     const weatherInfo = document.querySelector('#weather-info');
     weatherInfo.innerHTML = ""; // Clear previous
 
     if (!city) {
-        alert("Please enter a city or village name.");
-        return;
+        alert("Please enter a city name.");
+        return; 
     }
 
-    const Url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=1&appid=${apiKey}`;
-
-    fetch(Url)
-        .then(res => {
-            if (!res.ok) throw new Error("Location not found");
-            return res.json();
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error("City not found");
+            return response.json();
         })
-        .then(geoData => {
-            if (!geoData.length) throw new Error("Place not found");
-            const { lat, lon, name, country } = geoData[0];
-
-            const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-
-            return fetch(weatherUrl).then(r => r.json()).then(data => ({ data, name, country }));
-        })
-        .then(({ data, name, country }) => {
+        .then(data => {
             const forecasts = data.list;
             const dailyForecasts = [];
-            const uniqueDays = new Set();
 
+            // Get approx 12:00 PM forecast for each day
+            const uniqueDays = new Set();
             for (let i = 0; i < forecasts.length; i++) {
                 const date = forecasts[i].dt_txt.split(" ")[0];
                 const hour = forecasts[i].dt_txt.split(" ")[1];
@@ -40,7 +33,7 @@ function getWeather() {
                 if (dailyForecasts.length === 5) break;
             }
 
-            weatherInfo.innerHTML = `<h3 class="text-xl font-semibold mb-4 text-blue-800">${name}, ${country} - 5 Day Forecast</h3>`;
+            weatherInfo.innerHTML = `<h3 class="text-xl font-semibold mb-4 text-blue-800">${city} - 5 Day Forecast</h3>`;
 
             dailyForecasts.forEach(forecast => {
                 const date = new Date(forecast.dt_txt).toLocaleDateString();
